@@ -96,6 +96,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/compiler.ts":
+/*!*************************!*\
+  !*** ./src/compiler.ts ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\n/**\n *  compiler for textNode\n */\nfunction textCompiler(template, html) {\n    var lie = this;\n    var regex = /{{(\\w)}}/gm;\n    var m;\n    while ((m = regex.exec(html)) !== null) {\n        // This is necessary to avoid infinite loops with zero-width matches\n        if (m.index === regex.lastIndex) {\n            regex.lastIndex++;\n        }\n        if (m[1] && m[1] in lie.__data__) {\n            template.appendChild(document.createTextNode(lie.__data__[m[1]]));\n        }\n    }\n}\n/**\n * 创建元素\n */\nfunction createElement() {\n    var lie = this;\n    var template = document.createDocumentFragment();\n    textCompiler.call(lie, template, lie.$template);\n    return template;\n}\nexports.createElement = createElement;\n\n\n//# sourceURL=webpack://Lie/./src/compiler.ts?");
+
+/***/ }),
+
 /***/ "./src/dep.ts":
 /*!********************!*\
   !*** ./src/dep.ts ***!
@@ -116,7 +128,19 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar De
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar observe_1 = __webpack_require__(/*! ./observe */ \"./src/observe.ts\");\nvar watcher_1 = __webpack_require__(/*! ./watcher */ \"./src/watcher.ts\");\n// 初始化data\nfunction initData(data) {\n    observe_1.observe(data);\n}\nfunction updateComponent() {\n    var lie = this;\n    var html = createElement.call(lie);\n    lie.$el.innerHTML = \"\";\n    lie.$el.appendChild(html);\n}\nfunction createElement() {\n    var lie = this;\n    var template = document.createDocumentFragment();\n    textCompiler.call(lie, template, lie.$template);\n    return template;\n}\nfunction textCompiler(template, html) {\n    var lie = this;\n    var regex = /{{(\\w)}}/gm;\n    var m;\n    while ((m = regex.exec(html)) !== null) {\n        // This is necessary to avoid infinite loops with zero-width matches\n        if (m.index === regex.lastIndex) {\n            regex.lastIndex++;\n        }\n        if (m[1] && m[1] in lie.$data) {\n            template.appendChild(document.createTextNode(lie.$data[m[1]]));\n        }\n    }\n}\nvar Lie = /** @class */ (function () {\n    function Lie(options) {\n        this.$data = options.data();\n        // 初始化Data\n        initData(this.$data);\n        if (options.el) {\n            this.$mount(options.el);\n        }\n    }\n    Lie.prototype.$mount = function (el) {\n        var lie = this;\n        var $el = document.querySelector(el);\n        lie.$el = $el;\n        lie.$template = $el.outerHTML;\n        new watcher_1.Watcher(lie, function () { return updateComponent.call(lie); });\n    };\n    return Lie;\n}());\nexports.Lie = Lie;\n\n\n//# sourceURL=webpack://Lie/./src/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar watcher_1 = __webpack_require__(/*! ./watcher */ \"./src/watcher.ts\");\nvar init_1 = __webpack_require__(/*! ./init/init */ \"./src/init/init.ts\");\nvar compiler_1 = __webpack_require__(/*! ./compiler */ \"./src/compiler.ts\");\n/**\n * 更新组件\n */\nfunction updateComponent() {\n    var lie = this;\n    var html = compiler_1.createElement.call(lie);\n    lie.$el.innerHTML = \"\";\n    lie.$el.appendChild(html);\n}\nvar Lie = /** @class */ (function () {\n    function Lie(options) {\n        var data = options.data() || {};\n        this.__data__ = data;\n        // 初始化Data\n        init_1.initData(this, data);\n        if (options.el) {\n            this.$mount(options.el);\n        }\n    }\n    Lie.prototype.$mount = function (el) {\n        var lie = this;\n        var $el = document.querySelector(el);\n        lie.$el = $el;\n        lie.$template = $el.outerHTML;\n        new watcher_1.Watcher(lie, function () { return updateComponent.call(lie); });\n    };\n    return Lie;\n}());\nexports.Lie = Lie;\n\n\n//# sourceURL=webpack://Lie/./src/index.ts?");
+
+/***/ }),
+
+/***/ "./src/init/init.ts":
+/*!**************************!*\
+  !*** ./src/init/init.ts ***!
+  \**************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar observe_1 = __webpack_require__(/*! ../observe */ \"./src/observe.ts\");\n/**\n * 初始化data\n */\nfunction initData(lie, data) {\n    var keys = Object.keys(data);\n    var _loop_1 = function (i, l) {\n        var key = keys[i];\n        Object.defineProperty(lie, key, {\n            enumerable: true,\n            configurable: true,\n            set: function (val) {\n                this.__data__[key] = val;\n            },\n            get: function () {\n                return this.__data__[key];\n            }\n        });\n    };\n    for (var i = 0, l = keys.length; i < l; i++) {\n        _loop_1(i, l);\n    }\n    observe_1.observe(data);\n}\nexports.initData = initData;\n\n\n//# sourceURL=webpack://Lie/./src/init/init.ts?");
 
 /***/ }),
 
@@ -140,7 +164,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar de
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar dep_1 = __webpack_require__(/*! ./dep */ \"./src/dep.ts\");\nvar Watcher = /** @class */ (function () {\n    function Watcher(lie, func) {\n        this.subs = [];\n        this.lie = lie;\n        this.updateFunc = func;\n        this.get();\n    }\n    Watcher.prototype.addDep = function (dep) {\n        this.subs.push(dep);\n        dep.addSub(this);\n    };\n    Watcher.prototype.get = function () {\n        var lie = this.lie;\n        dep_1.pushTarget(this);\n        this.updateFunc.call(lie, lie);\n        dep_1.popTarget();\n    };\n    return Watcher;\n}());\nexports.Watcher = Watcher;\n\n\n//# sourceURL=webpack://Lie/./src/watcher.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar dep_1 = __webpack_require__(/*! ./dep */ \"./src/dep.ts\");\n/**\n ** 负责触发compiler\n */\nvar Watcher = /** @class */ (function () {\n    function Watcher(lie, func) {\n        this.subs = [];\n        this.lie = lie;\n        this.updateFunc = func;\n        this.get();\n    }\n    Watcher.prototype.addDep = function (dep) {\n        this.subs.push(dep);\n        dep.addSub(this);\n    };\n    Watcher.prototype.get = function () {\n        var lie = this.lie;\n        dep_1.pushTarget(this);\n        this.updateFunc.call(lie, lie);\n        dep_1.popTarget();\n    };\n    return Watcher;\n}());\nexports.Watcher = Watcher;\n\n\n//# sourceURL=webpack://Lie/./src/watcher.ts?");
 
 /***/ })
 

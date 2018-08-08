@@ -19,13 +19,15 @@ function updateComponent(): void {
 }
 
 export class Lie {
-    $data: Object;
+    __data__: Object;
     $el: HTMLElement;
     $template: string;
     constructor(options: { data: Data; el?: string }) {
-        this.$data = options.data();
+        let data = options.data() || {};
+        this.__data__ = data;
         // 初始化Data
-        initData(this.$data);
+        initData(this, data);
+
         if (options.el) {
             this.$mount(options.el);
         }

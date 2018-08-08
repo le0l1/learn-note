@@ -12,8 +12,8 @@ function textCompiler(template: DocumentFragment, html: string) {
         if (m.index === regex.lastIndex) {
             regex.lastIndex++;
         }
-        if (m[1] && m[1] in lie.$data) {
-            template.appendChild(document.createTextNode(lie.$data[m[1]]));
+        if (m[1] && m[1] in lie.__data__) {
+            template.appendChild(document.createTextNode(lie.__data__[m[1]]));
         }
     }
 }
