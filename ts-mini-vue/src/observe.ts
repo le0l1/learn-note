@@ -1,4 +1,5 @@
 import { Dep } from "./dep";
+import { isObject } from "./util";
 export const observe = (data: object): void => {
     for (let k in data) {
         defineReactive(data, k);
@@ -6,11 +7,14 @@ export const observe = (data: object): void => {
 };
 
 function defineReactive(data: object, key: string): void {
-    const property = Object.getOwnPropertyDescriptor(data, key);
-    const getter = property && property.get;
     let dep = new Dep();
-    // 运用闭包特性 暂存值
     let val = data[key];
+
+    // 嵌套属性对象
+    if (isObject(val)) {
+        observe(val);
+    }
+
     Object.defineProperty(data, key, {
         enumerable: true,
         configurable: true,

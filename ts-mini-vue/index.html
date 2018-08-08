@@ -9,6 +9,19 @@
 </head>
 
 <body>
-    <div id="app">{{a}}{{b}}
+    <div id="app">{{a.v}}{{b}}
     </div>
     <script src="./dist/lie.js"></script>
+    <script>
+        let lie = new Lie.Lie({
+            el: "#app",
+            data() {
+                return {
+                    a: {
+                        v: 123
+                    },
+                    b: 3
+                }
+            }
+        })
+    </script>

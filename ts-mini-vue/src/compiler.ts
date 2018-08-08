@@ -4,16 +4,17 @@ import { Lie } from "./index";
  */
 function textCompiler(template: DocumentFragment, html: string) {
     const lie: Lie = this;
-    const regex = /{{(\w)}}/gm;
-    let m;
+    const regex = /{{(.*?)}}/gm;
+    let m, v;
 
     while ((m = regex.exec(html)) !== null) {
         // This is necessary to avoid infinite loops with zero-width matches
         if (m.index === regex.lastIndex) {
             regex.lastIndex++;
         }
-        if (m[1] && m[1] in lie.__data__) {
-            template.appendChild(document.createTextNode(lie.__data__[m[1]]));
+
+        if (m[1] && (v = getDeepProperty(lie, m[1]))) {
+            template.appendChild(document.createTextNode(v));
         }
     }
 }
@@ -26,4 +27,18 @@ export function createElement(): DocumentFragment {
     let template = document.createDocumentFragment();
     textCompiler.call(lie, template, lie.$template);
     return template;
+}
+
+/**
+ * 嵌套属性
+ */
+function getDeepProperty(target: object, key: string): any {
+    let keys = key.split(".");
+    let val = target[keys[0]];
+    if (!val) return false;
+    if (keys.length > 1) {
+        return getDeepProperty(val, keys.slice(1).join("."));
+    } else {
+        return val;
+    }
 }

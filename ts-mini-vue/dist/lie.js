@@ -104,7 +104,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\n/**\n *  compiler for textNode\n */\nfunction textCompiler(template, html) {\n    var lie = this;\n    var regex = /{{(\\w)}}/gm;\n    var m;\n    while ((m = regex.exec(html)) !== null) {\n        // This is necessary to avoid infinite loops with zero-width matches\n        if (m.index === regex.lastIndex) {\n            regex.lastIndex++;\n        }\n        if (m[1] && m[1] in lie.__data__) {\n            template.appendChild(document.createTextNode(lie.__data__[m[1]]));\n        }\n    }\n}\n/**\n * 创建元素\n */\nfunction createElement() {\n    var lie = this;\n    var template = document.createDocumentFragment();\n    textCompiler.call(lie, template, lie.$template);\n    return template;\n}\nexports.createElement = createElement;\n\n\n//# sourceURL=webpack://Lie/./src/compiler.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\n/**\n *  compiler for textNode\n */\nfunction textCompiler(template, html) {\n    var lie = this;\n    var regex = /{{(.*?)}}/gm;\n    var m, v;\n    while ((m = regex.exec(html)) !== null) {\n        // This is necessary to avoid infinite loops with zero-width matches\n        if (m.index === regex.lastIndex) {\n            regex.lastIndex++;\n        }\n        if (m[1] && (v = getDeepProperty(lie, m[1]))) {\n            template.appendChild(document.createTextNode(v));\n        }\n    }\n}\n/**\n * 创建元素\n */\nfunction createElement() {\n    var lie = this;\n    var template = document.createDocumentFragment();\n    textCompiler.call(lie, template, lie.$template);\n    return template;\n}\nexports.createElement = createElement;\n/**\n * 嵌套属性\n */\nfunction getDeepProperty(target, key) {\n    var keys = key.split(\".\");\n    var val = target[keys[0]];\n    if (!val)\n        return false;\n    if (keys.length > 1) {\n        return getDeepProperty(val, keys.slice(1).join(\".\"));\n    }\n    else {\n        return val;\n    }\n}\n\n\n//# sourceURL=webpack://Lie/./src/compiler.ts?");
 
 /***/ }),
 
@@ -140,7 +140,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar wa
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar observe_1 = __webpack_require__(/*! ../observe */ \"./src/observe.ts\");\n/**\n * 初始化data\n */\nfunction initData(lie, data) {\n    var keys = Object.keys(data);\n    var _loop_1 = function (i, l) {\n        var key = keys[i];\n        Object.defineProperty(lie, key, {\n            enumerable: true,\n            configurable: true,\n            set: function (val) {\n                this.__data__[key] = val;\n            },\n            get: function () {\n                return this.__data__[key];\n            }\n        });\n    };\n    for (var i = 0, l = keys.length; i < l; i++) {\n        _loop_1(i, l);\n    }\n    observe_1.observe(data);\n}\nexports.initData = initData;\n\n\n//# sourceURL=webpack://Lie/./src/init/init.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar observe_1 = __webpack_require__(/*! ../observe */ \"./src/observe.ts\");\n/**\n * 初始化data\n */\nfunction initData(lie, data) {\n    proxy(lie, \"__data__\");\n    observe_1.observe(data);\n}\nexports.initData = initData;\n/**\n *  属性代理\n */\nfunction proxy(target, sourceKey) {\n    var data = target[sourceKey];\n    var keys = Object.keys(data);\n    var _loop_1 = function (i, l) {\n        var key = keys[i];\n        Object.defineProperty(target, key, {\n            enumerable: true,\n            configurable: true,\n            set: function (val) {\n                this[sourceKey][key] = val;\n            },\n            get: function () {\n                return this[sourceKey][key];\n            }\n        });\n    };\n    for (var i = 0, l = keys.length; i < l; i++) {\n        _loop_1(i, l);\n    }\n}\n\n\n//# sourceURL=webpack://Lie/./src/init/init.ts?");
 
 /***/ }),
 
@@ -152,7 +152,19 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar ob
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar dep_1 = __webpack_require__(/*! ./dep */ \"./src/dep.ts\");\nexports.observe = function (data) {\n    for (var k in data) {\n        defineReactive(data, k);\n    }\n};\nfunction defineReactive(data, key) {\n    var property = Object.getOwnPropertyDescriptor(data, key);\n    var getter = property && property.get;\n    var dep = new dep_1.Dep();\n    // 运用闭包特性 暂存值\n    var val = data[key];\n    Object.defineProperty(data, key, {\n        enumerable: true,\n        configurable: true,\n        get: function () {\n            var value = val;\n            if (dep_1.Dep.target) {\n                dep.depend();\n            }\n            return value;\n        },\n        set: function (newVal) {\n            if (newVal === val) {\n                return;\n            }\n            val = newVal;\n            dep.notify();\n        }\n    });\n}\n\n\n//# sourceURL=webpack://Lie/./src/observe.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar dep_1 = __webpack_require__(/*! ./dep */ \"./src/dep.ts\");\nvar util_1 = __webpack_require__(/*! ./util */ \"./src/util.ts\");\nexports.observe = function (data) {\n    for (var k in data) {\n        defineReactive(data, k);\n    }\n};\nfunction defineReactive(data, key) {\n    var dep = new dep_1.Dep();\n    var val = data[key];\n    // 嵌套属性对象\n    if (util_1.isObject(val)) {\n        exports.observe(val);\n    }\n    Object.defineProperty(data, key, {\n        enumerable: true,\n        configurable: true,\n        get: function () {\n            var value = val;\n            if (dep_1.Dep.target) {\n                dep.depend();\n            }\n            return value;\n        },\n        set: function (newVal) {\n            if (newVal === val) {\n                return;\n            }\n            val = newVal;\n            dep.notify();\n        }\n    });\n}\n\n\n//# sourceURL=webpack://Lie/./src/observe.ts?");
+
+/***/ }),
+
+/***/ "./src/util.ts":
+/*!*********************!*\
+  !*** ./src/util.ts ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nfunction isObject(val) {\n    return typeof val === \"object\";\n}\nexports.isObject = isObject;\n\n\n//# sourceURL=webpack://Lie/./src/util.ts?");
 
 /***/ }),
 
