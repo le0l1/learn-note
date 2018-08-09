@@ -2,5 +2,7 @@ export const createEmptyVNode = () => {
     return new VNode();
 };
 
-// virtual dom
+/**
+ * virtualdom
+ */
 export class VNode {}
