@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: nginx-config
+data:
+    default.conf: |
+        server {
+            listen       80;
+            server_name  localhost;
+            root   /usr/share/nginx/html;
+            access_log  /var/log/nginx/host_access.log;
+            error_log  /var/log/nginx/host_error.log debug;
+            location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm index.php;
+            }
+            error_page   500 502 503 504  /50x.html;
+            location = /50x.html {
+            root   /usr/share/nginx/html;
+            }
+            location ~ \.php$ {
+            fastcgi_pass   php-service:9000;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+            }
+            }
