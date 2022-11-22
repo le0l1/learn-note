@@ -51,7 +51,7 @@
   "devDependencies": {
     "@tarojs/cli": "^2.1.1",
     "@tarojs/mini-runner": "2.1.1",
-    "@tarojs/webpack-runner": "2.1.1",
+    "@tarojs/webpack-runner": "3.5.7",
     "@types/react": "^16.4.6",
     "@types/webpack-env": "^1.13.6",
     "@typescript-eslint/eslint-plugin": "^2.13.0",
